@@ -1,7 +1,7 @@
 import { fetchJson } from "../utils.js";
 
 export async function generateImage({ apiKey, model, prompt }) {
-  const url = "https://api.openai.com/v1/images";
+  const url = "https://api.openai.com/v1/images/generations";
   const body = {
     model,
     prompt,
