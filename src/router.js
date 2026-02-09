@@ -304,6 +304,10 @@ async function generateImageReply({ text, config }) {
     return "Je n ai pas pu generer l image.";
   }
 
+  if (imageUrl.startsWith("data:image/")) {
+    return imageUrl;
+  }
+
   return `Voici l image : ${imageUrl}`;
 }
 

@@ -102,11 +102,14 @@ client.on("messageCreate", async (message) => {
       const memoryKey = MEMORY_ENABLED ? getMemoryKey(message, mediaProvider) : "";
       const memoryContext = MEMORY_ENABLED ? buildContextText(getMemoryEntries(memoryKey)) : "";
       const contextText = mergeContext(globalContext, memoryContext);
+      const placeholder = await sendProcessingNotice(message);
       const reply = await generateMediaReply({ text, config, media, context: contextText });
       storeMemory(memoryKey, "user", text || describeMedia(media));
       if (reply) {
-        await sendReply(message, reply);
+        await sendReply(message, reply, placeholder);
         storeMemory(memoryKey, "assistant", reply);
+      } else if (placeholder) {
+        await placeholder.delete();
       }
       return;
     }
@@ -116,6 +119,7 @@ client.on("messageCreate", async (message) => {
     const memoryKey = MEMORY_ENABLED ? getMemoryKey(message, decision.provider) : "";
     const memoryContext = MEMORY_ENABLED ? buildContextText(getMemoryEntries(memoryKey)) : "";
     const contextText = mergeContext(globalContext, memoryContext);
+    const placeholder = decision.task === "image" ? await sendProcessingNotice(message) : null;
     const reply = await generateReply({
       provider: decision.provider,
       text,
@@ -126,8 +130,10 @@ client.on("messageCreate", async (message) => {
 
     storeMemory(memoryKey, "user", text);
     if (reply) {
-      await sendReply(message, reply);
+      await sendReply(message, reply, placeholder);
       storeMemory(memoryKey, "assistant", reply);
+    } else if (placeholder) {
+      await placeholder.delete();
     }
   } catch (error) {
     console.error("Message error:", error.message || error);
@@ -136,18 +142,34 @@ client.on("messageCreate", async (message) => {
 
 client.login(process.env.DISCORD_TOKEN);
 
-async function sendReply(message, reply) {
+async function sendProcessingNotice(message) {
+  try {
+    return await message.reply("Je traite...");
+  } catch (error) {
+    console.warn("Processing notice failed:", error?.message || error);
+    return null;
+  }
+}
+
+async function sendReply(message, reply, placeholderMessage) {
   const trimmed = String(reply || "").trim();
   if (!trimmed) return;
 
   const dataMatch = trimmed.match(/^data:image\/(png|jpeg|webp);base64,(.+)$/i);
   if (!dataMatch) {
+    if (placeholderMessage) {
+      await placeholderMessage.edit(trimmed);
+      return;
+    }
     await message.reply(trimmed);
     return;
   }
 
   const extension = dataMatch[1].toLowerCase() === "jpeg" ? "jpg" : dataMatch[1].toLowerCase();
   const buffer = Buffer.from(dataMatch[2], "base64");
+  if (placeholderMessage) {
+    await placeholderMessage.delete();
+  }
   await message.reply({
     files: [{ attachment: buffer, name: `image.${extension}` }]
   });
