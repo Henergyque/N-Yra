@@ -21,7 +21,7 @@ const config = {
   perplexityApiKey: process.env.PERPLEXITY_API_KEY,
   perplexityModel: process.env.PERPLEXITY_MODEL || "sonar-reasoning-pro",
   mistralApiKey: process.env.MISTRAL_API_KEY,
-  mistralModel: process.env.MISTRAL_MODEL || "mistral-large-3-25-12",
+  mistralModel: process.env.MISTRAL_MODEL || "mistral-large-2512",
   stabilityApiKey: process.env.STABILITY_API_KEY,
   stabilityModel: process.env.STABILITY_MODEL || "sd3.5-large",
   respondToMentionsOnly: String(process.env.RESPOND_TO_MENTIONS_ONLY || "false") === "true"
