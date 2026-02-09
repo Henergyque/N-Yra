@@ -8,7 +8,7 @@ export async function generate({ apiKey, model, system, user, maxTokens }) {
       { role: "system", content: system },
       { role: "user", content: user }
     ],
-    max_tokens: maxTokens,
+    max_completion_tokens: maxTokens,
     temperature: 0.4
   };
 
