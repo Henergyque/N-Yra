@@ -15,7 +15,7 @@ const config = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   claudeModel: process.env.CLAUDE_MODEL || "claude-opus-4-6-adaptive",
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL || "gemini-3-pro",
+  geminiModel: process.env.GEMINI_MODEL || "gemini-3-flash-preview",
   xaiApiKey: process.env.XAI_API_KEY,
   grokModel: process.env.GROK_MODEL || "grok-4",
   perplexityApiKey: process.env.PERPLEXITY_API_KEY,
