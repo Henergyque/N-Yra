@@ -40,3 +40,9 @@ First-name profile (persisted via Redis):
 - Use "oublie-moi" to delete it.
 - Set `REDIS_URL` from Railway Redis.
 - Toggle with `NAME_MEMORY_ENABLED`.
+
+Creator profile (persisted):
+
+- Set `CREATOR_USER_ID` to the Discord user id of the creator.
+- Set `CREATOR_TITLE` to the label (example: "maman", "creatrice").
+- The bot will answer creator questions with a mention.

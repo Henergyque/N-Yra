@@ -34,6 +34,8 @@ const MEMORY_SCOPE = process.env.MEMORY_SCOPE || "user_channel";
 const memoryStore = new Map();
 const NAME_MEMORY_ENABLED = String(process.env.NAME_MEMORY_ENABLED || "true") === "true";
 const REDIS_URL = process.env.REDIS_URL || "";
+const CREATOR_USER_ID = process.env.CREATOR_USER_ID || "";
+const CREATOR_TITLE = process.env.CREATOR_TITLE || "maman";
 const pendingNameConfirmations = new Map();
 
 const redis = REDIS_URL
@@ -46,6 +48,7 @@ if (redis) {
   });
   try {
     await redis.connect();
+    await ensureCreatorProfile();
   } catch (error) {
     console.error("Redis connection failed:", error?.message || error);
   }
@@ -84,6 +87,8 @@ client.on("messageCreate", async (message) => {
     if (!text && attachments.length === 0) return;
 
     if (text) {
+      const creatorHandled = await handleCreatorInfo({ message, text });
+      if (creatorHandled) return;
       const handled = await handleNameMemory({ message, text });
       if (handled) return;
     }
@@ -226,6 +231,20 @@ async function handleNameMemory({ message, text }) {
   return false;
 }
 
+async function handleCreatorInfo({ message, text }) {
+  const creator = await getCreatorProfile();
+  if (!creator?.id) return false;
+  if (!isCreatorQuestion(text)) return false;
+
+  const label = creator.title || "maman";
+  await message.reply(`Ma ${label}, c est <@${creator.id}>.`);
+  return true;
+}
+
+function isCreatorQuestion(text) {
+  return /(qui.*(cree|creer|createur|creatrice)|maman|creator|created you)/i.test(text);
+}
+
 function isForgetCommand(text) {
   return /(oublie[- ]moi|oublie moi|forget me)/i.test(text);
 }
@@ -272,6 +291,35 @@ async function getStoredFirstName(userId) {
     console.error("Redis get failed:", error?.message || error);
     return "";
   }
+}
+
+async function ensureCreatorProfile() {
+  if (!redis) return;
+  if (!CREATOR_USER_ID) return;
+  try {
+    const existing = await redis.get("myra:profile:creator_id");
+    if (!existing) {
+      await redis.set("myra:profile:creator_id", CREATOR_USER_ID);
+      await redis.set("myra:profile:creator_title", CREATOR_TITLE);
+    }
+  } catch (error) {
+    console.error("Redis init failed:", error?.message || error);
+  }
+}
+
+async function getCreatorProfile() {
+  if (redis) {
+    try {
+      const id = await redis.get("myra:profile:creator_id");
+      const title = await redis.get("myra:profile:creator_title");
+      return { id, title: title || CREATOR_TITLE };
+    } catch (error) {
+      console.error("Redis get failed:", error?.message || error);
+    }
+  }
+
+  if (!CREATOR_USER_ID) return null;
+  return { id: CREATOR_USER_ID, title: CREATOR_TITLE };
 }
 
 async function setStoredFirstName(userId, firstName) {

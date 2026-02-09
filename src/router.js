@@ -1,4 +1,4 @@
-import { ROUTER_SYSTEM, SYSTEM_PROMPT } from "./prompts.js";
+import { ROUTER_SYSTEM, getSystemPrompt } from "./prompts.js";
 import {
   compactWhitespace,
   extractJsonObject,
@@ -61,7 +61,7 @@ export async function generateReply({ provider, text, config, task, context }) {
   const raw = await client.generate({
     apiKey,
     model,
-    system: SYSTEM_PROMPT,
+    system: getSystemPrompt(config?.assistantName),
     user: buildContextPrompt(context, text),
     maxTokens: 512
   });
@@ -76,7 +76,7 @@ export async function generateMediaReply({ text, config, media, context }) {
   }
 
   const userText = normalizeMediaPrompt(text, media);
-  const promptText = `${SYSTEM_PROMPT}\n\n${buildContextPrompt(context, userText)}`;
+  const promptText = `${getSystemPrompt(config?.assistantName)}\n\n${buildContextPrompt(context, userText)}`;
 
   if (media.type === "youtube") {
     const parts = [
