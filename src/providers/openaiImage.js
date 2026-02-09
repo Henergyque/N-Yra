@@ -5,8 +5,7 @@ export async function generateImage({ apiKey, model, prompt }) {
   const body = {
     model,
     prompt,
-    size: "1024x1024",
-    response_format: "url"
+    size: "1024x1024"
   };
 
   const data = await fetchJson(url, {

@@ -105,7 +105,7 @@ client.on("messageCreate", async (message) => {
       const reply = await generateMediaReply({ text, config, media, context: contextText });
       storeMemory(memoryKey, "user", text || describeMedia(media));
       if (reply) {
-        await message.reply(reply);
+        await sendReply(message, reply);
         storeMemory(memoryKey, "assistant", reply);
       }
       return;
@@ -126,7 +126,7 @@ client.on("messageCreate", async (message) => {
 
     storeMemory(memoryKey, "user", text);
     if (reply) {
-      await message.reply(reply);
+      await sendReply(message, reply);
       storeMemory(memoryKey, "assistant", reply);
     }
   } catch (error) {
@@ -135,6 +135,23 @@ client.on("messageCreate", async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
+async function sendReply(message, reply) {
+  const trimmed = String(reply || "").trim();
+  if (!trimmed) return;
+
+  const dataMatch = trimmed.match(/^data:image\/(png|jpeg|webp);base64,(.+)$/i);
+  if (!dataMatch) {
+    await message.reply(trimmed);
+    return;
+  }
+
+  const extension = dataMatch[1].toLowerCase() === "jpeg" ? "jpg" : dataMatch[1].toLowerCase();
+  const buffer = Buffer.from(dataMatch[2], "base64");
+  await message.reply({
+    files: [{ attachment: buffer, name: `image.${extension}` }]
+  });
+}
 
 function getMemoryKey(message, provider) {
   if (!MEMORY_ENABLED) return "";
