@@ -289,6 +289,7 @@ async function generateImageReply({ text, config }) {
       prompt: text
     });
   } catch (error) {
+    console.warn("OpenAI image error:", error?.message || error);
     if (isCreditError(error)) {
       console.warn("OpenAI image credits may be exhausted.");
     }
@@ -321,6 +322,7 @@ async function generateStabilityImageReply({ text, config, silent }) {
 
     return imageUrl;
   } catch (error) {
+    console.warn("Stability image error:", error?.message || error);
     if (isCreditError(error)) {
       console.warn("Stability AI credits may be exhausted.");
     }
