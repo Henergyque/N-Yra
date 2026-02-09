@@ -1,0 +1,15 @@
+{
+  "name": "m-yra-assistante",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7",
+    "redis": "^4.7.0"
+  }
+}
