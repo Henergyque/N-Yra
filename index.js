@@ -157,14 +157,15 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   duel.picks[userId] = pickIndex;
-  await interaction.reply({
-    content: `Choix enregistre : ||${choices[pickIndex]}||`,
-    ephemeral: true,
-  });
-
   const p1Choice = duel.picks[duel.player1Id];
   const p2Choice = duel.picks[duel.player2Id];
-  if (p1Choice === undefined || p2Choice === undefined) return;
+  if (p1Choice === undefined || p2Choice === undefined) {
+    await interaction.reply({
+      content: `Choix enregistre : ||${choices[pickIndex]}||`,
+      ephemeral: true,
+    });
+    return;
+  }
 
   duel.resolved = true;
   const result = duelResult(p1Choice, p2Choice);
@@ -196,7 +197,20 @@ client.on('interactionCreate', async (interaction) => {
     .setDescription(description)
     .setColor(color);
 
-  await interaction.message.edit({ embeds: [resultEmbed], components: [] });
+  try {
+    // Le 2e clic met directement a jour le message public du duel.
+    await interaction.update({ embeds: [resultEmbed], components: [] });
+  } catch (error) {
+    console.error('Erreur update duel, fallback edit :', error);
+    await interaction.message.edit({ embeds: [resultEmbed], components: [] });
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: 'Resultat publie dans le salon.',
+        ephemeral: true,
+      });
+    }
+  }
+
   duels.delete(duelId);
 });
 
